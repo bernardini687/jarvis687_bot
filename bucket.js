@@ -5,6 +5,7 @@ const bucket = new S3Client({});
 
 module.exports = {
   writeJSON: async (Key, body) => {
+    console.log('bucket:', BUCKET_NAME);
     const cmd = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key,
