@@ -1,17 +1,20 @@
 const axios = require('axios');
+const bucket = require('./bucket')
 
-const BASE_URL = `https://api.telegram.org/bot${process.env['BOT_TOKEN']}`;
+const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
 
 exports.handler = async (event) => {
   const msg = telegramMessage(event);
 
+  await bucket.writeJSON('balance/store.json', buildStore(msg));
+
   try {
     const { data } = await sendMessage(msg.chat.id, msg.text);
-    console.log("data:", data);
+    console.log('data:', data);
 
     return { statusCode: 200 };
   } catch (err) {
-    console.log("err:", err);
+    console.log('err:', err);
 
     return { statusCode: 500 };
   }
@@ -40,4 +43,8 @@ function sendMessage(chat_id, text) {
     text,
     parse_mode: 'HTML'
   });
+}
+
+function buildStore(message) {
+  return { [message.from.id]: message.text }
 }
