@@ -1,18 +1,20 @@
-const axios = require('axios')
+const axios = require('axios');
+
 const BASE_URL = `https://api.telegram.org/bot${process.env['BOT_TOKEN']}`;
 
-exports.handler = async event => {
-  console.log("[INFO] event:", event);
+exports.handler = async (event) => {
+  const msg = telegramMessage(event);
 
-  const message = telegramMessage(event);
+  try {
+    const { data } = await sendMessage(msg.chat.id, msg.text);
+    console.log("data:", data);
 
-  console.log("[INFO] text:", message.text);
+    return { statusCode: 200 };
+  } catch (err) {
+    console.log("err:", err);
 
-  sendMessage(message.chat.id, message.text);
-
-  return {
-    statusCode: 200
-  };
+    return { statusCode: 500 };
+  }
 };
 
 /*
@@ -29,22 +31,13 @@ message: {
 }
  */
 function telegramMessage(event) {
-  const { message } = JSON.parse(event.body);
-
-  return message;
+  return JSON.parse(event.body).message;
 }
 
 function sendMessage(chat_id, text) {
-  axios
-    .post(`${BASE_URL}/sendMessage`, {
-      chat_id,
-      text,
-      parse_mode: 'HTML'
-    })
-    .then(res => {
-      console.log(`[INFO] res.statusCode: ${res.statusCode}`);
-    })
-    .catch(err => {
-      console.error(err);
-    });
+  return axios.post(`${BASE_URL}/sendMessage`, {
+    chat_id,
+    text,
+    parse_mode: 'HTML'
+  });
 }
