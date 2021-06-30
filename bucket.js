@@ -1,10 +1,12 @@
 const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 
-const bucket = new S3Client({ params: { Bucket: process.env.BUCKET_NAME } });
+const BUCKET_NAME = process.env.BUCKET_NAME;
+const bucket = new S3Client({});
 
 module.exports = {
   writeJSON: async (Key, body) => {
     const cmd = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
       Key,
       Body: JSON.stringify(body),
       ContentType: 'application/json'
@@ -15,6 +17,7 @@ module.exports = {
 
 // export async function readContent(filePath) {
 //     const cmd = new GetObjectCommand({
+//         Bucket: BUCKET_NAME,
 //         Key: `notepad/${filePath}`,
 //     });
 //     const response = await bucket.send(cmd);
