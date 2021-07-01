@@ -1,5 +1,5 @@
-const TerserPlugin = require('terser-webpack-plugin');
-const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin')
+const path = require('path')
 
 module.exports = {
   entry: [
@@ -14,7 +14,7 @@ module.exports = {
   optimization: {
     minimizer: [
       new TerserPlugin({
-        extractComments: false,
+        extractComments: false
       })
     ]
   }

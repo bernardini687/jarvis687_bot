@@ -1,24 +1,30 @@
-const axios = require('axios');
+const axios = require('axios')
 const bucket = require('./bucket')
 
-const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`;
+const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
+const STORE_KEY = 'balance/store.json'
 
 exports.handler = async (event) => {
-  const msg = telegramMessage(event);
+  const msg = telegramMessage(event)
 
-  await bucket.writeJSON('balance/store.json', buildStore(msg));
+  // read
+  const store = await bucket.readJsonContent(STORE_KEY)
+  store.push(msg.text)
+
+  // update
+  await bucket.writeJsonContent(STORE_KEY, store)
 
   try {
-    const { data } = await sendMessage(msg.chat.id, buildTextList(['foo', 'bar']));
-    console.log('data:', data);
+    const { data } = await sendMessage(msg.chat.id, buildTextList(store))
+    console.log('data:', data)
 
-    return { statusCode: 200 };
+    return { statusCode: 200 }
   } catch (err) {
-    console.log('err:', err);
+    console.log('err:', err)
 
-    return { statusCode: 500 };
+    return { statusCode: 500 }
   }
-};
+}
 
 /*
  * message: {
@@ -33,28 +39,21 @@ exports.handler = async (event) => {
  *   text: ''
  * }
  */
-function telegramMessage(event) {
-  return JSON.parse(event.body).message;
+function telegramMessage (event) {
+  return JSON.parse(event.body).message
 }
 
-function sendMessage(chat_id, text) {
+function sendMessage (chat_id, text) {
   return axios.post(`${BASE_URL}/sendMessage`, {
     chat_id,
     text,
     parse_mode: 'HTML'
-  });
-}
-
-function buildStore(message) {
-  // return { [message.from.id]: message.text }
-  return ['hello', 'world']
+  })
 }
 
 /*
  * @items ['', '']
  */
-function buildTextList(items) {
-  return items.reduce((prev, item) => {
-    return prev += `\n${item}`
-  })
+function buildTextList (items) {
+  return items.reduce((prev, item) => `${prev}\n${item}`)
 }
