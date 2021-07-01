@@ -8,14 +8,14 @@ exports.handler = async (event) => {
   const msg = telegramMessage(event)
 
   // read
-  const store = await bucket.readJsonContent(STORE_KEY)
-  store.push(msg.text)
+  const items = await bucket.readJsonContent(STORE_KEY)
+  items.push(msg.text)
 
   // update
-  await bucket.writeJsonContent(STORE_KEY, store)
+  await bucket.writeJsonContent(STORE_KEY, items)
 
   try {
-    const { data } = await sendMessage(msg.chat.id, buildTextList(store))
+    const { data } = await sendMessage(msg.chat.id, buildTextList(items))
     console.log('data:', data)
 
     return { statusCode: 200 }
