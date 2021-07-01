@@ -1,7 +1,8 @@
 {
   "scripts": {
+    "cleanup": "rm dist/*",
     "build": "webpack",
-    "zip": "zip -r jarvis.zip bundle.js"
+    "zip": "zip -rj dist/jarvis dist/bundle.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.19.0",
