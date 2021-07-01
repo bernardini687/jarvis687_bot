@@ -21,7 +21,9 @@ module.exports = {
     })
 
     const res = await bucket.send(cmd)
-    const json = streamToString(res.Body)
+    const json = await streamToString(res.Body)
+
+    console.log('json:', json)
 
     return JSON.parse(json)
   }
