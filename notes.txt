@@ -1,0 +1,5 @@
+delete pending updates: https://www.reddit.com/r/TelegramBots/comments/5gbjuz/how_to_delete_all_pending_updates_from_telegram/
+
+better yet, pass "?drop_pending_updates=true", as seen in the doc: https://core.telegram.org/bots/api#setwebhook
+
+restrict type of messages that are considered updates: allowed_updates param in #setWebhook
