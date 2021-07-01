@@ -55,6 +55,6 @@ function buildStore(message) {
  */
 function buildTextList(items) {
   return items.reduce((prev, item) => {
-    return prev += `<br>${item}`
+    return prev += `\n${item}`
   })
 }
