@@ -5,6 +5,13 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const STORE_KEY = 'balance/store.json'
 
 exports.handler = async (event) => {
+  // 1. check if user is allowed, if it is, continue:
+  // 2. check if user is in the store, if it is, skip sign assignment and continue:
+  // 2.1 sign assignment:
+  // 3. reply asking to input costs (with placeholder)
+  // 4. update store
+  // 5. send back report
+
   const msg = telegramMessage(event)
 
   // read
