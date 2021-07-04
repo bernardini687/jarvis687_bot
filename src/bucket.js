@@ -12,6 +12,8 @@ module.exports = {
       ContentType: 'application/json'
     })
 
+    console.log('writing json:', body)
+
     await bucket.send(cmd)
   },
   readJsonContent: async (Key) => {
@@ -23,7 +25,7 @@ module.exports = {
     const res = await bucket.send(cmd)
     const json = await streamToString(res.Body)
 
-    console.log('json:', json)
+    console.log('reading json:', json)
 
     return JSON.parse(json)
   }

@@ -9,16 +9,14 @@ exports.handler = async (event) => {
 
   const msg = telegramMessage(event)
 
-  if (!isNewMessage(msg.date)) {
-    return
-  }
-
   if (!userOkay(msg.from.id)) {
-    return sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
+    await sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
+    return
   }
 
   if (msg.text === 'RESETBALANCE') {
     await bucket.writeJsonContent(MEMORY_KEY, {})
+    return
   }
 
   if (msg.text === '/spesa') {
@@ -27,11 +25,18 @@ exports.handler = async (event) => {
     try {
       await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name)
     } catch (e) {
-      return sendMessage(msg.chat.id, e.message) // TODO: test third user
+      await sendMessage(msg.chat.id, e.message) // TODO: test third user
+      return
     }
 
-    return sendQuery(msg.chat.id, `Quanto hai speso, ${msg.from.first_name}?`, msg.message_id)
+    await sendQuery(msg.chat.id, `Quanto hai speso, ${msg.from.first_name}?`, msg.message_id)
   }
+
+  // if ('reply_to_message' in msg) {
+  //   // check NaN === Number(msg.text)
+  //   // update history
+  //   // send report
+  // }
 }
 
 /*
@@ -53,10 +58,10 @@ function telegramMessage (event) {
   return JSON.parse(event.body).message
 }
 
-function isNewMessage (date) {
-  // telegram's timestamps have 10 digits while js ones have 13
-  return date >= parseInt(Date.now() / 1000) - 1 // allow messages 1 second older than this lambda's run time
-}
+// function isNewMessage (date) {
+//   // telegram's timestamps have 10 digits while js ones have 13
+//   return date >= parseInt(Date.now() / 1000) - 1 // allow messages 1 second older than this lambda's run time
+// }
 
 function userOkay (user) {
   const allowedUsers = process.env.ALLOWED_USERS.split(':')
