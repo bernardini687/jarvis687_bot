@@ -9,6 +9,10 @@ exports.handler = async (event) => {
 
   const msg = telegramMessage(event)
 
+  if (!isNewMessage(msg.date)) {
+    return
+  }
+
   if (!userOkay(msg.from.id)) {
     return sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
   }
@@ -41,11 +45,17 @@ exports.handler = async (event) => {
  *     id: 1,
  *     type: '',
  *   },
+ *   date: 1,
  *   text: ''
  * }
  */
 function telegramMessage (event) {
   return JSON.parse(event.body).message
+}
+
+function isNewMessage (date) {
+  // telegram's timestamps have 10 digits while js ones have 13
+  return date >= parseInt(Date.now() / 1000)
 }
 
 function userOkay (user) {
