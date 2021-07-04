@@ -55,7 +55,7 @@ function telegramMessage (event) {
 
 function isNewMessage (date) {
   // telegram's timestamps have 10 digits while js ones have 13
-  return date >= parseInt(Date.now() / 1000)
+  return date >= parseInt(Date.now() / 1000) - 1 // allow messages 1 second older than this lambda's run time
 }
 
 function userOkay (user) {
