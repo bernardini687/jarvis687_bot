@@ -38,7 +38,7 @@ describe('scenario', () => {
 
   describe('permitted user inputs 2 initial expenses', () => {
     beforeEach(() => {
-      // In this scenario, `__RESETBALANCE__` was first invoked, causing the memory to become empty.
+      // In this scenario, `RESETBALANCE` was first invoked, causing the memory to become empty.
       bucketMock.readJsonContent.mockImplementation(() => Promise.resolve({}))
       bucketMock.writeJsonContent.mockImplementation(() => Promise.resolve()) //
       axiosMock.post.mockImplementation(() => Promise.resolve({ data: {} })) //

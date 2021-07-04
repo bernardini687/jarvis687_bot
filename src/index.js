@@ -5,20 +5,19 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  // 4. update memory
-  // 5. send back report
+  console.log('body:', JSON.parse(event.body))
 
   const msg = telegramMessage(event)
 
-  if (msg.text === '__RESETBALANCE__') {
+  if (!userOkay(msg.from.id)) {
+    return sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
+  }
+
+  if (msg.text === 'RESETBALANCE') {
     await bucket.writeJsonContent(MEMORY_KEY, {})
   }
 
   if (msg.text === '/spesa') {
-    if (!userOkay(msg.from.id)) {
-      return sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
-    }
-
     const mem = await bucket.readJsonContent(MEMORY_KEY)
 
     try {
