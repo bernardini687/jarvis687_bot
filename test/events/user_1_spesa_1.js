@@ -1,3 +1,3 @@
 module.exports = {
-  body: '{"update_id":1,"message":{"message_id":1,"from":{"id":011,"is_bot":false,"first_name":"user_1","last_name":"user_1","language_code":"en"},"chat":{"id":1,"first_name":"user_1","last_name":"user_1","type":"private"},"date":1625236666,"text":"/spesa"}}'
+  body: '{"update_id":656537653,"message":{"message_id":62,"from":{"id":111,"is_bot":false,"first_name":"user_1","last_name":"subject","language_code":"en"},"chat":{"id":1,"first_name":"user_1","last_name":"subject","type":"private"},"date":1625409052,"text":"/spesa","entities":[{"offset":0,"length":6,"type":"bot_command"}]}}'
 }
