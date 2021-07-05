@@ -7,10 +7,6 @@ const index = require('./index')
 jest.mock('axios')
 jest.mock('./bucket')
 
-// TODO:
-//   wrong input
-//   second user
-
 describe('scenario', () => {
   beforeEach(jest.resetAllMocks)
 
@@ -160,51 +156,51 @@ describe('scenario', () => {
           }
         )
 
-        // /*
-        //  * INTERACTION #3
-        //  *
-        //  * User 111 sends `/spesa` command again:
-        //  */
-        // event = require('../test/events/user_1_spesa_3')
-        // updateMemory(expectedMemory) // respond to reads with the current memory state.
+        /*
+         * INTERACTION #3
+         *
+         * User 111 sends `/spesa` command again:
+         */
+        event = require('../test/events/user_1_spesa_3')
+        updateMemory(expectedMemory) // respond to reads with the current memory state.
 
-        // await index.handler(event)
+        await index.handler(event)
 
-        // expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(3)
-        // expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(2) // user 111 is already in memory, no need for any writes this time
-        // expect(axiosMock.post).toHaveBeenCalledTimes(3)
-        // expect(axiosMock.post).toHaveBeenCalledWith(
-        //   SEND_MESSAGE_URL,
-        //   {
-        //     chat_id: 1,
-        //     text: 'Quanto hai speso, user_1?',
-        //     reply_to_message_id: 3,
-        //     reply_markup
-        //   }
-        // )
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(3)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(2) // user 111 is already in memory, no need for any writes this time
+        expect(axiosMock.post).toHaveBeenCalledTimes(3)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: texts.BALANCE_QUERY('user_1'),
+            reply_to_message_id: 65,
+            reply_markup
+          }
+        )
 
-        // /*
-        //  * INTERACTION #4
-        //  *
-        //  * User 111 responds to the bot with another `12.01`:
-        //  */
-        // event = require('../test/events/user_1_spesa_4')
-        // updateMemory(expectedMemory)
-        // expectedMemory = { ...expectedMemory, history: { user_1: 2402 } }
+        /*
+         * INTERACTION #4
+         *
+         * User 111 responds to the bot with another `12.01`:
+         */
+        event = require('../test/events/user_1_spesa_4')
+        updateMemory(expectedMemory)
+        expectedMemory = { ...expectedMemory, history: { user_1: 2402 } }
 
-        // await index.handler(event)
+        await index.handler(event)
 
-        // expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(4)
-        // expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(3)
-        // expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
-        // expect(axiosMock.post).toHaveBeenCalledTimes(4)
-        // expect(axiosMock.post).toHaveBeenCalledWith(
-        //   SEND_MESSAGE_URL,
-        //   {
-        //     chat_id: 1,
-        //     text: 'user_1: 24.02'
-        //   }
-        // )
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(4)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(3)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(4)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: 'user_1: 24.02'
+          }
+        )
       })
     })
   })
