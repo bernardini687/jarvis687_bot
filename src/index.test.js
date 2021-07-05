@@ -14,7 +14,7 @@ describe('scenario', () => {
   const MEMORY_KEY = 'balance/memory.json'
 
   describe('unpermitted user', () => {
-    describe ('sends a message', () => {
+    describe('sends a message', () => {
       it('sends an error message back', async () => {
         const event = require('../test/events/unpermitted_user')
 
@@ -58,16 +58,11 @@ describe('scenario', () => {
          * First user (id: 111) sends `/spesa` command:
          */
         let event = require('../test/events/user_1_spesa_1')
-        let expectedMemory = {
-          users: { 111: { name: 'user_1', sign: '+' } },
-          history: {}
-        }
 
         await index.handler(event)
 
         expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(1) // get the state of memory
         expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(1) // update with the new user
-        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
         expect(axiosMock.post).toHaveBeenCalledTimes(1) // send expense request
         expect(axiosMock.post).toHaveBeenCalledWith(
           SEND_MESSAGE_URL,
@@ -85,13 +80,12 @@ describe('scenario', () => {
          * User 111 responds to the bot's expense request with `hello`:
          */
         event = require('../test/events/user_1_bad_input')
-        updateMemory(expectedMemory) // respond to reads with the current memory state
 
         await index.handler(event)
 
         expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(2)
         expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(1) // update is skipped because of bad input
-        expect(axiosMock.post).toHaveBeenCalledTimes(2)
+        expect(axiosMock.post).toHaveBeenCalledTimes(2) // re-send expense request
         expect(axiosMock.post).toHaveBeenCalledWith(
           SEND_MESSAGE_URL,
           {
