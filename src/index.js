@@ -6,7 +6,9 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  console.log('body:', JSON.parse(event.body))
+  if (!process.env.NODE_ENV === 'test') {
+    console.log('body:', JSON.parse(event.body))
+  }
 
   const msg = telegramMessage(event)
 

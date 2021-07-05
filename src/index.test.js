@@ -295,14 +295,14 @@ describe('scenario', () => {
         /*
          * INTERACTION #4
          *
-         * User 222 responds to the bot's expense request with `24,01`:
+         * User 222 responds to the bot's expense request with `20,01`:
          */
         event = require('../test/events/user_2_spesa_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
-          history: { user_1: 1201, user_2: -2401 },
-          balance: -599
+          history: { user_1: 1201, user_2: -2001 },
+          balance: -399
         }
 
         await index.handler(event)
@@ -315,7 +315,57 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 2,
-            text: 'user_1: 12,01\nuser_2: 24,01\nuser_1 -> user_2: 5,99'
+            text: 'user_1: 12,01\nuser_2: 20,01\nuser_1 -> user_2: 3,99'
+          }
+        )
+
+        /*
+         * INTERACTION #5
+         *
+         * User 111 sends `/spesa` command again:
+         */
+        event = require('../test/events/user_1_spesa_3')
+        updateMemory(expectedMemory) // respond to reads with the current memory state.
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(5)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(4) // user 111 is already in memory, no need for any writes this time
+        expect(axiosMock.post).toHaveBeenCalledTimes(5)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: texts.BALANCE_QUERY('user_1'),
+            reply_to_message_id: 65,
+            reply_markup
+          }
+        )
+
+        /*
+         * INTERACTION #6
+         *
+         * User 111 responds to the bot with another `12.01`:
+         */
+        event = require('../test/events/user_1_spesa_4')
+        updateMemory(expectedMemory)
+        expectedMemory = {
+          ...expectedMemory,
+          history: { user_1: 2402, user_2: -2001 },
+          balance: 201
+        }
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(6)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(5)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(6)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: 'user_1: 24,02\nuser_2: 20,01\nuser_2 -> user_1: 2,01'
           }
         )
       })
