@@ -33,7 +33,7 @@ exports.handler = async (event) => {
     const mem = await bucket.readJsonContent(MEMORY_KEY)
 
     try {
-      await handleHistoryUpdate(mem, msg.from.first_name, msg.text)
+      await handleHistoryUpdate(mem, msg.from.id, msg.text)
     } catch (e) {
       await sendQuery(msg.chat.id, e.message, msg.message_id)
       return
@@ -89,19 +89,37 @@ async function handlePossibleNewUser (memory, user, name) {
   await bucket.writeJsonContent(MEMORY_KEY, memory)
 }
 
-async function handleHistoryUpdate (memory, name, text) {
+async function handleHistoryUpdate (memory, user, text) {
   let amount = Number(text)
   if (isNaN(amount)) {
     throw new Error(texts.BALANCE_INPUT_ERROR)
   }
-  amount = Math.round(amount * 100)
+  amount = Math.round(Math.abs(amount) * 100)
+
+  const { name, sign } = memory.users[user]
+
+  if (sign === '-') {
+    amount = -amount
+  }
 
   if (!memory.history[name]) {
     memory.history[name] = 0
   }
   memory.history[name] += amount
 
+  setBalance(memory)
+
   await bucket.writeJsonContent(MEMORY_KEY, memory)
+}
+
+function setBalance (memory) {
+  let amounts = Object.values(memory.history)
+  amounts = amounts.map(amount => Math.round(amount / amounts.length))
+
+  memory.balance = amounts.reduce((memo, amount) => {
+    memo += amount
+    return memo
+  })
 }
 
 function sendMessage (chat_id, text) {
@@ -118,24 +136,45 @@ function sendQuery (chat_id, text, reply_to_message_id) {
     reply_to_message_id,
     reply_markup: {
       force_reply: true,
-      input_field_placeholder: '12.01',
+      input_field_placeholder: '12.01', // 12,01
       selective: true
     }
   })
 }
 
-function prepareReport ({ history }) {
-  const report = Object.keys(history).reduce(
+function prepareReport ({ users, history, balance }) {
+  const names = Object.keys(history)
+  let report = names.reduce(
     (prev, name) => `${prev}${name}: ${formatAmount(history[name])}\n`,
     ''
   )
+
+  // handle debitor
+  if (names.length > 1) {
+    let cre, deb
+
+    const plus = Object.values(users).find((user) => user.sign === '+')
+    const minus = Object.values(users).find((user) => user.sign === '-')
+
+    if (balance > 0) {
+      deb = minus
+      cre = plus
+    }
+    deb = plus
+    cre = minus
+
+    report += `${deb.name} -> ${cre.name}: ${formatAmount(balance)}`
+  }
+
   return report.trimEnd()
 }
 
 function formatAmount (amount) {
-  return (amount / 100).toFixed(2)
+  return (Math.abs(amount) / 100).toFixed(2)
 }
 
 // function buildTextList (items) {
 //   return items.reduce((prev, item) => `${prev}\n${item}`)
 // }
+
+// TODO: accept both 12.01 and 12,01 (replace(',', '.'))

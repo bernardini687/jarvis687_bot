@@ -137,7 +137,8 @@ describe('scenario', () => {
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
-          history: { user_1: 1201 }
+          history: { user_1: 1201 },
+          balance: 1201
         }
 
         await index.handler(event)
@@ -186,7 +187,8 @@ describe('scenario', () => {
         updateMemory(expectedMemory)
         expectedMemory = {
           ...expectedMemory,
-          history: { user_1: 2402 }
+          history: { user_1: 2402 },
+          balance: 2402
         }
 
         await index.handler(event)
@@ -244,7 +246,8 @@ describe('scenario', () => {
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
-          history: { user_1: 1201 }
+          history: { user_1: 1201 },
+          balance: 1201
         }
 
         await index.handler(event)
@@ -298,7 +301,8 @@ describe('scenario', () => {
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
-          history: { user_1: 1201, user_2: 2401 }
+          history: { user_1: 1201, user_2: -2401 },
+          balance: -599
         }
 
         await index.handler(event)
@@ -311,7 +315,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 2,
-            text: 'user_1: 12.01\nuser_2: 24.01'
+            text: 'user_1: 12.01\nuser_2: 24.01\nuser_1 -> user_2: 5.99'
           }
         )
       })
