@@ -6,7 +6,7 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  // console.log('body:', JSON.parse(event.body))
+  console.log('body:', JSON.parse(event.body))
 
   const msg = telegramMessage(event)
 
@@ -63,16 +63,17 @@ function telegramMessage (event) {
   return JSON.parse(event.body).message
 }
 
-// function isNewMessage (date) {
-//   // telegram's timestamps have 10 digits while js ones have 13
-//   return date >= parseInt(Date.now() / 1000) - 1 // allow messages 1 second older than this lambda's run time
-// }
-
+/*
+ *
+ */
 function userOkay (user) {
   const allowedUsers = process.env.ALLOWED_USERS.split(':')
   return allowedUsers.includes(user.toString())
 }
 
+/*
+ *
+ */
 async function handlePossibleNewUser (memory, user, name) {
   if (user in memory.users) {
     return
@@ -89,6 +90,9 @@ async function handlePossibleNewUser (memory, user, name) {
   await bucket.writeJsonContent(MEMORY_KEY, memory)
 }
 
+/*
+ *
+ */
 async function handleHistoryUpdate (memory, user, text) {
   let amount = Number(text)
   if (isNaN(amount)) {
@@ -112,9 +116,12 @@ async function handleHistoryUpdate (memory, user, text) {
   await bucket.writeJsonContent(MEMORY_KEY, memory)
 }
 
+/*
+ *
+ */
 function setBalance (memory) {
   let amounts = Object.values(memory.history)
-  amounts = amounts.map(amount => Math.round(amount / amounts.length))
+  amounts = amounts.map((amount) => Math.round(amount / amounts.length))
 
   memory.balance = amounts.reduce((memo, amount) => {
     memo += amount
@@ -122,6 +129,9 @@ function setBalance (memory) {
   })
 }
 
+/*
+ *
+ */
 function sendMessage (chat_id, text) {
   return axios.post(`${BASE_URL}/sendMessage`, {
     chat_id,
@@ -129,6 +139,9 @@ function sendMessage (chat_id, text) {
   })
 }
 
+/*
+ *
+ */
 function sendQuery (chat_id, text, reply_to_message_id) {
   return axios.post(`${BASE_URL}/sendMessage`, {
     chat_id,
@@ -142,26 +155,30 @@ function sendQuery (chat_id, text, reply_to_message_id) {
   })
 }
 
+/*
+ *
+ */
 function prepareReport ({ users, history, balance }) {
   const names = Object.keys(history)
   let report = names.reduce(
-    (prev, name) => `${prev}${name}: ${formatAmount(history[name])}\n`,
+    (memo, name) => `${memo}${name}: ${formatAmount(history[name])}\n`,
     ''
   )
 
   // handle debitor
   if (names.length > 1) {
-    let cre, deb
+    let deb, cre
 
-    const plus = Object.values(users).find((user) => user.sign === '+')
-    const minus = Object.values(users).find((user) => user.sign === '-')
+    const plus = findUserBySign(users, '+')
+    const minus = findUserBySign(users, '-')
 
     if (balance > 0) {
       deb = minus
       cre = plus
+    } else {
+      deb = plus
+      cre = minus
     }
-    deb = plus
-    cre = minus
 
     report += `${deb.name} -> ${cre.name}: ${formatAmount(balance)}`
   }
@@ -169,12 +186,18 @@ function prepareReport ({ users, history, balance }) {
   return report.trimEnd()
 }
 
+/*
+ *
+ */
+function findUserBySign (users, sign) {
+  return Object.values(users).find((user) => user.sign === sign)
+}
+
+/*
+ *
+ */
 function formatAmount (amount) {
   return (Math.abs(amount) / 100).toFixed(2)
 }
-
-// function buildTextList (items) {
-//   return items.reduce((prev, item) => `${prev}\n${item}`)
-// }
 
 // TODO: accept both 12.01 and 12,01 (replace(',', '.'))
