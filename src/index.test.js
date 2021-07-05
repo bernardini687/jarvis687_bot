@@ -98,7 +98,7 @@ describe('scenario', () => {
       })
     })
 
-    describe('inputs 2 initial expenses', () => {
+    describe('inputs two initial expenses', () => {
       it('updates the memory accordingly', async () => {
         /*
          * INTERACTION #1
@@ -135,7 +135,10 @@ describe('scenario', () => {
          */
         event = require('../test/events/user_1_spesa_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
-        expectedMemory = { ...expectedMemory, history: { user_1: 1201 } }
+        expectedMemory = {
+          ...expectedMemory,
+          history: { user_1: 1201 }
+        }
 
         await index.handler(event)
 
@@ -181,7 +184,10 @@ describe('scenario', () => {
          */
         event = require('../test/events/user_1_spesa_4')
         updateMemory(expectedMemory)
-        expectedMemory = { ...expectedMemory, history: { user_1: 2402 } }
+        expectedMemory = {
+          ...expectedMemory,
+          history: { user_1: 2402 }
+        }
 
         await index.handler(event)
 
@@ -194,6 +200,118 @@ describe('scenario', () => {
           {
             chat_id: 1,
             text: 'user_1: 24.02'
+          }
+        )
+      })
+    })
+
+    describe('shares a balance with another user', () => {
+      it('updates the memory accordingly', async () => {
+        /*
+         * INTERACTION #1
+         *
+         * First user (id: 111) sends `/spesa` command:
+         */
+        let event = require('../test/events/user_1_spesa_1')
+        let expectedMemory = {
+          users: { 111: { name: 'user_1', sign: '+' } },
+          history: {},
+          balance: 0
+        }
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(1) // get the state of memory
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(1) // update with the new user
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(1) // send expense request
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: texts.BALANCE_QUERY('user_1'),
+            reply_to_message_id: 62,
+            reply_markup
+          }
+        )
+
+        /*
+         * INTERACTION #2
+         *
+         * User 111 responds to the bot's expense request with `12.01`:
+         */
+        event = require('../test/events/user_1_spesa_2')
+        updateMemory(expectedMemory) // respond to reads with the current memory state
+        expectedMemory = {
+          ...expectedMemory,
+          history: { user_1: 1201 }
+        }
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(2)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(2)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(2)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 1,
+            text: 'user_1: 12.01'
+          }
+        )
+
+        /*
+         * INTERACTION #3
+         *
+         * Second user (id: 222) sends `/spesa` command:
+         */
+        event = require('../test/events/user_2_spesa_1')
+        updateMemory(expectedMemory) // respond to reads with the current memory state
+        expectedMemory = {
+          ...expectedMemory,
+          users: { 111: { name: 'user_1', sign: '+' }, 222: { name: 'user_2', sign: '-' } }
+        }
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(3) // get the state of memory
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(3) // update with the new user
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(3) // send expense request
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 2,
+            text: texts.BALANCE_QUERY('user_2'),
+            reply_to_message_id: 90,
+            reply_markup
+          }
+        )
+
+        /*
+         * INTERACTION #4
+         *
+         * User 222 responds to the bot's expense request with `24.01`:
+         */
+        event = require('../test/events/user_2_spesa_2')
+        updateMemory(expectedMemory) // respond to reads with the current memory state
+        expectedMemory = {
+          ...expectedMemory,
+          history: { user_1: 1201, user_2: 2401 }
+        }
+
+        await index.handler(event)
+
+        expect(bucketMock.readJsonContent).toHaveBeenCalledTimes(4)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledTimes(4)
+        expect(bucketMock.writeJsonContent).toHaveBeenCalledWith(MEMORY_KEY, expectedMemory)
+        expect(axiosMock.post).toHaveBeenCalledTimes(4)
+        expect(axiosMock.post).toHaveBeenCalledWith(
+          SEND_MESSAGE_URL,
+          {
+            chat_id: 2,
+            text: 'user_1: 12.01\nuser_2: 24.01'
           }
         )
       })
