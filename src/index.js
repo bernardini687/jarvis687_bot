@@ -94,7 +94,8 @@ async function handlePossibleNewUser (memory, user, name) {
  *
  */
 async function handleHistoryUpdate (memory, user, text) {
-  let amount = Number(text)
+  let amount = text.replace(',', '.')
+  amount = Number(amount)
   if (isNaN(amount)) {
     throw new Error(texts.BALANCE_INPUT_ERROR)
   }
@@ -149,7 +150,7 @@ function sendQuery (chat_id, text, reply_to_message_id) {
     reply_to_message_id,
     reply_markup: {
       force_reply: true,
-      input_field_placeholder: '12.01', // 12,01
+      input_field_placeholder: '12,01',
       selective: true
     }
   })
@@ -197,7 +198,5 @@ function findUserBySign (users, sign) {
  *
  */
 function formatAmount (amount) {
-  return (Math.abs(amount) / 100).toFixed(2)
+  return (Math.abs(amount) / 100).toFixed(2).replace('.', ',')
 }
-
-// TODO: accept both 12.01 and 12,01 (replace(',', '.'))

@@ -41,7 +41,7 @@ describe('scenario', () => {
 
     const reply_markup = {
       force_reply: true,
-      input_field_placeholder: '12.01',
+      input_field_placeholder: '12,01',
       selective: true
     }
 
@@ -151,7 +151,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 1,
-            text: 'user_1: 12.01'
+            text: 'user_1: 12,01'
           }
         )
 
@@ -201,7 +201,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 1,
-            text: 'user_1: 24.02'
+            text: 'user_1: 24,02'
           }
         )
       })
@@ -260,7 +260,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 1,
-            text: 'user_1: 12.01'
+            text: 'user_1: 12,01'
           }
         )
 
@@ -295,7 +295,7 @@ describe('scenario', () => {
         /*
          * INTERACTION #4
          *
-         * User 222 responds to the bot's expense request with `24.01`:
+         * User 222 responds to the bot's expense request with `24,01`:
          */
         event = require('../test/events/user_2_spesa_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
@@ -315,7 +315,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 2,
-            text: 'user_1: 12.01\nuser_2: 24.01\nuser_1 -> user_2: 5.99'
+            text: 'user_1: 12,01\nuser_2: 24,01\nuser_1 -> user_2: 5,99'
           }
         )
       })
