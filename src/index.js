@@ -1,42 +1,47 @@
 const axios = require('axios')
 const bucket = require('./bucket')
+const texts = require('./texts')
 
 const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  console.log('body:', JSON.parse(event.body))
+  // console.log('body:', JSON.parse(event.body))
 
   const msg = telegramMessage(event)
 
   if (!userOkay(msg.from.id)) {
-    await sendMessage(msg.chat.id, 'Non mi è permesso di interagire con te')
+    await sendMessage(msg.chat.id, texts.UNPERMITTED_USER)
     return
   }
 
   if (msg.text === 'RESETBALANCE') {
-    await bucket.writeJsonContent(MEMORY_KEY, {})
+    await bucket.writeJsonContent(MEMORY_KEY, { users: {}, history: {} })
     return
   }
 
   if (msg.text === '/spesa') {
     const mem = await bucket.readJsonContent(MEMORY_KEY)
 
+    await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name)
+
+    await sendQuery(msg.chat.id, texts.BALANCE_QUERY(msg.from.first_name), msg.message_id)
+    return
+  }
+
+  if ('reply_to_message' in msg) {
+    const mem = await bucket.readJsonContent(MEMORY_KEY)
+
     try {
-      await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name)
+      await handleHistoryUpdate(mem, msg.from.first_name, msg.text)
     } catch (e) {
-      await sendMessage(msg.chat.id, e.message) // TODO: test third user
+      await sendQuery(msg.chat.id, e.message, msg.message_id)
       return
     }
 
-    await sendQuery(msg.chat.id, `Quanto hai speso, ${msg.from.first_name}?`, msg.message_id)
+    // send report
+    await sendMessage(msg.chat.id, prepareReport(mem))
   }
-
-  // if ('reply_to_message' in msg) {
-  //   // check NaN === Number(msg.text)
-  //   // update history
-  //   // send report
-  // }
 }
 
 /*
@@ -69,15 +74,32 @@ function userOkay (user) {
 }
 
 async function handlePossibleNewUser (memory, user, name) {
-  if ('users' in memory) {
-    if (user in memory.users) {
-      return
-    } else if (Object.keys(memory.users).length > 1) {
-      throw new Error('Non sono permessi ulteriori utenti')
-    }
-    memory.users[user] = { name, sign: '-' }
+  if (user in memory.users) {
+    return
   }
-  memory.users = { [user]: { name, sign: '+' } }
+
+  let sign = '+'
+
+  // no need to worry about a third user as long as only two are permitted in ALLOWED_USERS
+  if (Object.keys(memory.users).length > 0) {
+    sign = '-'
+  }
+  memory.users[user] = { name, sign }
+
+  await bucket.writeJsonContent(MEMORY_KEY, memory)
+}
+
+async function handleHistoryUpdate (memory, name, text) {
+  let amount = Number(text)
+  if (isNaN(amount)) {
+    throw new Error(texts.BALANCE_INPUT_ERROR)
+  }
+  amount = Math.round(amount * 100)
+
+  if (!memory.history[name]) {
+    memory.history[name] = 0
+  }
+  memory.history[name] += amount
 
   await bucket.writeJsonContent(MEMORY_KEY, memory)
 }
@@ -86,7 +108,6 @@ function sendMessage (chat_id, text) {
   return axios.post(`${BASE_URL}/sendMessage`, {
     chat_id,
     text
-    // parse_mode: 'HTML'
   })
 }
 
@@ -101,6 +122,18 @@ function sendQuery (chat_id, text, reply_to_message_id) {
       selective: true
     }
   })
+}
+
+function prepareReport ({ history }) {
+  const report = Object.keys(history).reduce(
+    (prev, name) => `${prev}${name}: ${formatAmount(history[name])}\n`,
+    ''
+  )
+  return report.trimEnd()
+}
+
+function formatAmount (amount) {
+  return (amount / 100).toFixed(2)
 }
 
 // function buildTextList (items) {
