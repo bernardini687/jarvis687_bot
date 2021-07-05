@@ -35,11 +35,6 @@ describe('scenario', () => {
   })
 
   describe('permitted user', () => {
-    beforeEach(() => {
-      // in this scenario, `RESETBALANCE` was first invoked, causing the memory to become initialized
-      bucketMock.readJsonContent.mockImplementation(() => Promise.resolve({ users: {}, history: {} }))
-    })
-
     function updateMemory (newMemory) {
       bucketMock.readJsonContent.mockImplementationOnce(() => Promise.resolve({ ...newMemory }))
     }
@@ -49,6 +44,11 @@ describe('scenario', () => {
       input_field_placeholder: '12.01',
       selective: true
     }
+
+    beforeEach(() => {
+      // in this scenario, `RESETBALANCE` was first invoked, causing the memory to become initialized
+      bucketMock.readJsonContent.mockImplementation(() => Promise.resolve({ users: {}, history: {}, balance: 0 }))
+    })
 
     describe('inputs something other than a number', () => {
       it('sends an error message back', async () => {
@@ -108,7 +108,8 @@ describe('scenario', () => {
         let event = require('../test/events/user_1_spesa_1')
         let expectedMemory = {
           users: { 111: { name: 'user_1', sign: '+' } },
-          history: {}
+          history: {},
+          balance: 0
         }
 
         await index.handler(event)

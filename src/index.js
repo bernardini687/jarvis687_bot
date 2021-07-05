@@ -6,7 +6,7 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  // console.log('body:', JSON.parse(event.body))
+  console.log('body:', JSON.parse(event.body))
 
   const msg = telegramMessage(event)
 
@@ -16,7 +16,7 @@ exports.handler = async (event) => {
   }
 
   if (msg.text === 'RESETBALANCE') {
-    await bucket.writeJsonContent(MEMORY_KEY, { users: {}, history: {} })
+    await bucket.writeJsonContent(MEMORY_KEY, { users: {}, history: {}, balance: 0 })
     return
   }
 
