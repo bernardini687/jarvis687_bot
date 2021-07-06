@@ -126,10 +126,61 @@ function setBalance (memory) {
   let amounts = Object.values(memory.history)
   amounts = amounts.map((amount) => Math.round(amount / amounts.length))
 
-  memory.balance = amounts.reduce((memo, amount) => {
-    memo += amount
-    return memo
+  memory.balance = amounts.reduce((sum, amount) => {
+    sum += amount
+    return sum
   })
+}
+
+/*
+ *
+ */
+function prepareReport ({ users, history, balance }) {
+  const names = Object.keys(history)
+  let report = names.reduce(
+    (content, name) => `${content}${name}: ${formatAmount(history[name])}\n`,
+    ''
+  )
+
+  if (names.length > 1) {
+    report += debitorTextInfo(users, balance)
+  }
+
+  return report.trimEnd()
+}
+
+/*
+ *
+ */
+function debitorTextInfo (users, balance) {
+  let deb, cre
+
+  const plus = findUserBySign(users, '+')
+  const minus = findUserBySign(users, '-')
+
+  if (balance > 0) {
+    deb = minus
+    cre = plus
+  } else {
+    deb = plus
+    cre = minus
+  }
+
+  return `${deb.name} -> ${cre.name}: ${formatAmount(balance)}`
+}
+
+/*
+ *
+ */
+function findUserBySign (users, sign) {
+  return Object.values(users).find((user) => user.sign === sign)
+}
+
+/*
+ *
+ */
+function formatAmount (amount) {
+  return (Math.abs(amount) / 100).toFixed(2).replace('.', ',')
 }
 
 /*
@@ -156,49 +207,4 @@ function sendQuery (chat_id, text, reply_to_message_id) {
       selective: true
     }
   })
-}
-
-/*
- *
- */
-function prepareReport ({ users, history, balance }) {
-  const names = Object.keys(history)
-  let report = names.reduce(
-    (memo, name) => `${memo}${name}: ${formatAmount(history[name])}\n`,
-    ''
-  )
-
-  // handle debitor
-  if (names.length > 1) {
-    let deb, cre
-
-    const plus = findUserBySign(users, '+')
-    const minus = findUserBySign(users, '-')
-
-    if (balance > 0) {
-      deb = minus
-      cre = plus
-    } else {
-      deb = plus
-      cre = minus
-    }
-
-    report += `${deb.name} -> ${cre.name}: ${formatAmount(balance)}`
-  }
-
-  return report.trimEnd()
-}
-
-/*
- *
- */
-function findUserBySign (users, sign) {
-  return Object.values(users).find((user) => user.sign === sign)
-}
-
-/*
- *
- */
-function formatAmount (amount) {
-  return (Math.abs(amount) / 100).toFixed(2).replace('.', ',')
 }
