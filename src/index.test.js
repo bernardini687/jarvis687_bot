@@ -16,7 +16,7 @@ describe('scenario', () => {
   describe('unpermitted user', () => {
     describe('sends a message', () => {
       it('sends an error message back', async () => {
-        const event = require('../test/events/unpermitted_user')
+        const event = require('../test/events/spesa/bad_user')
 
         await index.handler(event)
 
@@ -57,7 +57,7 @@ describe('scenario', () => {
          *
          * First user (id: 111) sends `/spesa` command:
          */
-        let event = require('../test/events/user_1_spesa_1')
+        let event = require('../test/events/spesa/user_1_msg_1')
 
         await index.handler(event)
 
@@ -79,7 +79,7 @@ describe('scenario', () => {
          *
          * User 111 responds to the bot's expense request with `hello`:
          */
-        event = require('../test/events/user_1_bad_input')
+        event = require('../test/events/spesa/user_1_bad_input')
 
         await index.handler(event)
 
@@ -105,7 +105,7 @@ describe('scenario', () => {
          *
          * First user (id: 111) sends `/spesa` command:
          */
-        let event = require('../test/events/user_1_spesa_1')
+        let event = require('../test/events/spesa/user_1_msg_1')
         let expectedMemory = {
           users: { 111: { name: 'user_1', sign: '+' } },
           history: {},
@@ -133,7 +133,7 @@ describe('scenario', () => {
          *
          * User 111 responds to the bot's expense request with `12.01`:
          */
-        event = require('../test/events/user_1_spesa_2')
+        event = require('../test/events/spesa/user_1_msg_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
@@ -160,7 +160,7 @@ describe('scenario', () => {
          *
          * User 111 sends `/spesa` command again:
          */
-        event = require('../test/events/user_1_spesa_3')
+        event = require('../test/events/spesa/user_1_msg_3')
         updateMemory(expectedMemory) // respond to reads with the current memory state.
 
         await index.handler(event)
@@ -183,7 +183,7 @@ describe('scenario', () => {
          *
          * User 111 responds to the bot with another `12.01`:
          */
-        event = require('../test/events/user_1_spesa_4')
+        event = require('../test/events/spesa/user_1_msg_4')
         updateMemory(expectedMemory)
         expectedMemory = {
           ...expectedMemory,
@@ -214,7 +214,7 @@ describe('scenario', () => {
          *
          * First user (id: 111) sends `/spesa` command:
          */
-        let event = require('../test/events/user_1_spesa_1')
+        let event = require('../test/events/spesa/user_1_msg_1')
         let expectedMemory = {
           users: { 111: { name: 'user_1', sign: '+' } },
           history: {},
@@ -242,7 +242,7 @@ describe('scenario', () => {
          *
          * User 111 responds to the bot's expense request with `12.01`:
          */
-        event = require('../test/events/user_1_spesa_2')
+        event = require('../test/events/spesa/user_1_msg_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
@@ -269,7 +269,7 @@ describe('scenario', () => {
          *
          * Second user (id: 222) sends `/spesa` command:
          */
-        event = require('../test/events/user_2_spesa_1')
+        event = require('../test/events/spesa/user_2_msg_1')
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
@@ -297,7 +297,7 @@ describe('scenario', () => {
          *
          * User 222 responds to the bot's expense request with `20,01`:
          */
-        event = require('../test/events/user_2_spesa_2')
+        event = require('../test/events/spesa/user_2_msg_2')
         updateMemory(expectedMemory) // respond to reads with the current memory state
         expectedMemory = {
           ...expectedMemory,
@@ -324,7 +324,7 @@ describe('scenario', () => {
          *
          * User 111 sends `/spesa` command again:
          */
-        event = require('../test/events/user_1_spesa_3')
+        event = require('../test/events/spesa/user_1_msg_3')
         updateMemory(expectedMemory) // respond to reads with the current memory state.
 
         await index.handler(event)
@@ -347,7 +347,7 @@ describe('scenario', () => {
          *
          * User 111 responds to the bot with another `12.01`:
          */
-        event = require('../test/events/user_1_spesa_4')
+        event = require('../test/events/spesa/user_1_msg_4')
         updateMemory(expectedMemory)
         expectedMemory = {
           ...expectedMemory,
