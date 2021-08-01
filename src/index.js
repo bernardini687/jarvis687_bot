@@ -65,7 +65,7 @@ exports.handler = async (event) => {
  * }
  */
 function telegramMessage (event) {
-  return JSON.parse(event.body).message
+  return JSON.parse(event.body).message || {}
 }
 
 /*
