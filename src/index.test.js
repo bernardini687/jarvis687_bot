@@ -315,7 +315,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 2,
-            text: 'user_1: 12,01\nuser_2: 20,01\nuser_1 -> user_2: 3,99'
+            text: 'user_1: 12,01\nuser_2: 20,01\nuser_1 -> user_2: 3,99\nPer capita: 16,01'
           }
         )
 
@@ -365,7 +365,7 @@ describe('scenario', () => {
           SEND_MESSAGE_URL,
           {
             chat_id: 1,
-            text: 'user_1: 24,02\nuser_2: 20,01\nuser_2 -> user_1: 2,01'
+            text: 'user_1: 24,02\nuser_2: 20,01\nuser_2 -> user_1: 2,01\nPer capita: 22,02'
           }
         )
       })

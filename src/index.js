@@ -6,11 +6,13 @@ const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
 const MEMORY_KEY = 'balance/memory.json'
 
 exports.handler = async (event) => {
-  if (!process.env.NODE_ENV === 'test') {
-    console.log('body:', JSON.parse(event.body))
-  }
+  console.log('event.body:', event.body)
 
   const msg = telegramMessage(event)
+
+  if (!('from' in msg)) {
+    return
+  }
 
   if (!userOkay(msg.from.id)) {
     await sendMessage(msg.chat.id, texts.UNPERMITTED_USER)
@@ -22,7 +24,8 @@ exports.handler = async (event) => {
     return
   }
 
-  if (msg.text === '/spesa') {
+  // allow both `/spesa` and `/spesa@bot`:
+  if (/^\/spesa/.test(msg.text)) {
     const mem = await bucket.readJsonContent(MEMORY_KEY)
 
     await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name)
@@ -101,7 +104,10 @@ async function handleHistoryUpdate (memory, user, text) {
   if (isNaN(amount)) {
     throw new Error(texts.BALANCE_INPUT_ERROR)
   }
-  amount = Math.round(Math.abs(amount) * 100)
+  // `amount` can be negative or zero.
+  // if negative, it can be used to revert a mistake (first you send `100`, then you correct with `-100`).
+  // if zero, it can be used to just obtain the report.
+  amount = Math.round(amount * 100)
 
   const { name, sign } = memory.users[user]
 
@@ -144,6 +150,7 @@ function prepareReport ({ users, history, balance }) {
 
   if (names.length > 1) {
     report += debitorTextInfo(users, balance)
+    report += perCapitaTextInfo(history)
   }
 
   return report.trimEnd()
@@ -166,7 +173,22 @@ function debitorTextInfo (users, balance) {
     cre = minus
   }
 
-  return `${deb.name} -> ${cre.name}: ${formatAmount(balance)}`
+  return `${deb.name} -> ${cre.name}: ${formatAmount(balance)}\n`
+}
+
+/*
+ *
+ */
+function perCapitaTextInfo (history) {
+  let amounts = Object.values(history)
+  amounts = amounts.map(Math.abs)
+
+  const tot = amounts.reduce((sum, amount) => {
+    sum += amount
+    return sum
+  })
+
+  return `Per capita: ${formatAmount(tot / 2)}\n`
 }
 
 /*
