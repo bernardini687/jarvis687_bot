@@ -3,7 +3,7 @@ const bucket = require('./bucket')
 const texts = require('./texts')
 
 const BASE_URL = `https://api.telegram.org/bot${process.env.BOT_TOKEN}`
-const MEMORY_KEY = 'balance/memory.json'
+const MEMORY_FILE = 'memory.json'
 
 exports.handler = async (event) => {
   console.log('event.body:', event.body)
@@ -14,31 +14,41 @@ exports.handler = async (event) => {
     return
   }
 
-  if (!userOkay(msg.from.id)) {
-    await sendMessage(msg.chat.id, texts.UNPERMITTED_USER)
+  if (!chatOkay(msg.chat.id)) {
+    await sendMessage(msg.chat.id, texts.UNPERMITTED_CHAT)
     return
   }
 
+  if (msg.chat.type !== 'group') {
+    await sendMessage(msg.chat.id, texts.UNPERMITTED_CHAT_TYPE)
+    return
+  }
+
+  const memoryKey = `${msg.chat.id}/${MEMORY_FILE}`
+
   if (msg.text === 'RESETBALANCE') {
-    await bucket.writeJsonContent(MEMORY_KEY, { users: {}, history: {}, balance: 0 })
+    await bucket.writeJsonContent(memoryKey, { users: {}, history: {}, balance: 0 })
     return
   }
 
   // allow both `/spesa` and `/spesa@bot`:
   if (/^\/spesa/.test(msg.text)) {
-    const mem = await bucket.readJsonContent(MEMORY_KEY)
+    const mem = await bucket.readJsonContent(memoryKey)
 
-    await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name)
+    // TODO: Object.keys(memory.users).length > 1) SKIP HANDLE POSSIBLE NEW USERS ?
+    // TODO: what happens when a third chat member enters?
+
+    await handlePossibleNewUser(mem, msg.from.id, msg.from.first_name, memoryKey)
 
     await sendQuery(msg.chat.id, texts.BALANCE_QUERY(msg.from.first_name), msg.message_id)
     return
   }
 
   if ('reply_to_message' in msg) {
-    const mem = await bucket.readJsonContent(MEMORY_KEY)
+    const mem = await bucket.readJsonContent(memoryKey)
 
     try {
-      await handleHistoryUpdate(mem, msg.from.id, msg.text)
+      await handleHistoryUpdate(mem, msg.from.id, msg.text, memoryKey)
     } catch (e) {
       await sendQuery(msg.chat.id, e.message, msg.message_id)
       return
@@ -71,34 +81,33 @@ function telegramMessage (event) {
 /*
  *
  */
-function userOkay (user) {
-  const allowedUsers = process.env.ALLOWED_USERS.split(':')
-  return allowedUsers.includes(user.toString())
+function chatOkay (user) {
+  const allowedChats = process.env.ALLOWED_CHATS.split(':')
+  return allowedChats.includes(user.toString())
 }
 
 /*
  *
  */
-async function handlePossibleNewUser (memory, user, name) {
+async function handlePossibleNewUser (memory, user, name, memoryKey) {
   if (user in memory.users) {
     return
   }
 
   let sign = '+'
 
-  // no need to worry about a third user as long as only two are permitted in ALLOWED_USERS
   if (Object.keys(memory.users).length > 0) {
     sign = '-'
   }
   memory.users[user] = { name, sign }
 
-  await bucket.writeJsonContent(MEMORY_KEY, memory)
+  await bucket.writeJsonContent(memoryKey, memory)
 }
 
 /*
  *
  */
-async function handleHistoryUpdate (memory, user, text) {
+async function handleHistoryUpdate (memory, user, text, memoryKey) {
   let amount = text.replace(',', '.')
   amount = Number(amount)
   if (isNaN(amount)) {
@@ -122,7 +131,7 @@ async function handleHistoryUpdate (memory, user, text) {
 
   setBalance(memory)
 
-  await bucket.writeJsonContent(MEMORY_KEY, memory)
+  await bucket.writeJsonContent(memoryKey, memory)
 }
 
 /*
@@ -188,7 +197,7 @@ function perCapitaTextInfo (history) {
     return sum
   })
 
-  return `Per capita: ${formatAmount(tot / 2)}\n`
+  return `Pro capite: ${formatAmount(tot / 2)}\n`
 }
 
 /*
