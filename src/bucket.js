@@ -22,6 +22,8 @@ module.exports = {
       Key
     })
 
+    console.log('ABOUT TO FETCH FROM BUCKET:', BUCKET_NAME)
+
     const res = await bucket.send(cmd)
     const json = await streamToString(res.Body)
 

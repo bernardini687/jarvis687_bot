@@ -31,6 +31,8 @@ exports.handler = async (event) => {
     return
   }
 
+  console.log('memory key:', memoryKey)
+
   // allow both `/spesa` and `/spesa@bot`:
   if (/^\/spesa/.test(msg.text)) {
     const mem = await bucket.readJsonContent(memoryKey)
@@ -81,9 +83,9 @@ function telegramMessage (event) {
 /*
  *
  */
-function chatOkay (user) {
+function chatOkay (chat) {
   const allowedChats = process.env.ALLOWED_CHATS.split(':')
-  return allowedChats.includes(user.toString())
+  return allowedChats.includes(chat.toString())
 }
 
 /*
